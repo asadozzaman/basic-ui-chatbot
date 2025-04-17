@@ -329,3 +329,30 @@
 .parcel-info p {
     margin: 5px 0;
 }
+
+
+
+/* chatbot css */
+
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  color: #2b7a78;
+  margin-top: 1.2em;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin-left: 1.5em;
+  padding-left: 1em;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5em;
+}
+
+.markdown-content strong {
+  color: #333;
+}
+
+.markdown-content p {
+  margin: 10px 0;
+}

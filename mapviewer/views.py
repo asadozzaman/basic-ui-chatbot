@@ -7,6 +7,13 @@ from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 from mapviewer.gemini_analysis import analyze
 import os
+import markdown  # Add this at the top
+from django.http import StreamingHttpResponse
+
+
+
+
+
 
 def upload_and_analyze(request):
     result = None
@@ -23,10 +30,11 @@ def upload_and_analyze(request):
         full_path = fs.path(file_path)
 
         result = analyze(data_type, full_path, prompt)
-        print('result-------After',result)
+        result_html = markdown.markdown(result)  # Convert Markdown to HTML
+        print('result_html-------After',result_html)
         os.remove(full_path)
 
-    return render(request, 'mapviewer/index.html', {'result': result})
+    return render(request, 'mapviewer/index.html', {'result_html': result_html})
 
 
 

@@ -10,7 +10,7 @@ genai.configure(api_key="AIzaSyCRg8kZ_QyTUAkX4KOAA5YnpBNM8gvfwbM")
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 # --- System Prompt Engineering ---
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 You are an expert agronomist and data scientist assistant helping kiwi growers improve crop yield.
 Your role is to analyze the uploaded data (CSV, images, videos), understand patterns or issues,
 and provide actionable insights on irrigation, fertilization, pest management, and growth stages.
@@ -25,7 +25,19 @@ Always mention:
 # --- Analyze CSV ---
 def analyze_csv(file_path, user_prompt):
     df = pd.read_csv(file_path)
-    prompt = f"{SYSTEM_PROMPT}\nUser Query: {user_prompt}\nCSV Data Preview:\n{df.head(10).to_string(index=False)}"
+    prompt = f"""
+        {SYSTEM_PROMPT}
+        User Query: {user_prompt}
+
+        Please format your answer using:
+        - Headings (e.g., **Suggestions**, **Observations**)
+        - Bullet points for lists
+        - Clear short paragraphs
+
+        CSV/Image/Video Data Preview:
+        {df.head(10).to_string(index=False)}
+        """
+
     response = model.generate_content(prompt)
     return response.text
 
