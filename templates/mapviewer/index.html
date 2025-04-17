@@ -1,0 +1,292 @@
+{% load static %}
+{% csrf_token %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tau Research LTD</title>
+
+
+
+    <!-- External styles -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"/>
+
+    <!-- Local style -->
+    <link rel="stylesheet" href="{% static 'mapviewer/style.css' %}">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="{% static 'mapviewer/main.css' %}" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <i class='bx bxs-dashboard'></i>
+            <span>Tau Research</span>
+        </div>
+        <nav>
+            <a href="#" class="active" data-page="mappage">
+                <i class='bx bxs-mappage'></i>
+                <span>Map View</span>
+            </a>
+            <a href="#" data-page="upload">
+                <i class='bx bxs-upload'></i>
+                <span>Upload Data</span>
+            </a>
+            <a href="#" data-page="table">
+                <i class='bx bxs-table'></i>
+                <span>Data Table</span>
+            </a>
+            <a href="#" data-page="charts">
+                <i class='bx bxs-chart'></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" data-page="chat">
+                <i class='bx bxs-chat'></i>
+                <span>Chat Assistant</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Navbar -->
+        <div class="navbar">
+            <div class="search">
+                <i class='bx bx-search'></i>
+                <input type="text" placeholder="Search...">
+            </div>
+            <div class="user">
+                <i class='bx bxs-bell'></i>
+                <div class="profile">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" alt="profile">
+                    <span>Faysal Ahmed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Pages -->
+        <div class="content">
+            <!-- Map Page -->
+            <div class="page active" id="mappage">
+                <div class="search-bar">
+                    <input type="text" id="locationSearch" placeholder="🔍 Search for a location " />
+                    <button onclick="searchLocation()">Search</button>
+                </div>
+
+                <div class="map-section">
+                    <section class="map-container" id="map"></section>
+                    <div id="areaOutput" style="margin: 10px; font-weight: bold; background-color: #f0f0f0; padding: 10px; border-left: 4px solid green;">
+                        Last marked area: none
+                    </div>
+
+                    <div class="parcel-table-container">
+                        <h3>Saved Parcels</h3>
+                        <table id="parcelTable" class="parcel-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Area (m²)</th>
+                                    <th>Actions</th>
+                                    <th>Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="analysis-section">
+                    <h2>Heat Map Analysis</h2>
+                    <div class="map-container">
+                        <div id="heatmap"></div>
+                        <div class="stats-cards">
+                            <div class="card">
+                                <h3>Total Area</h3>
+                                <p>21,100 m²</p>
+                            </div>
+                            <div class="card">
+                                <h3>Average Density</h3>
+                                <p>33 per m²</p>
+                            </div>
+                            <div class="card">
+                                <h3>Last Scanned</h3>
+                                <p>3 Mar</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Page -->
+            <div class="page" id="upload">
+                <h2>Upload Data</h2>
+                <div class="upload-container">
+                    <div class="upload-box">
+                        <i class='bx bx-image-add'></i>
+                        <h3>Drop images here</h3>
+                        <p>or click to browse</p>
+                        <input type="file" multiple accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label>Select Date</label>
+                        <input type="date">
+                    </div>
+                    <button class="upload-btn">Upload Files</button>
+                </div>
+            </div>
+
+            <!-- Table Page -->
+            <div class="page" id="table">
+                <h2>Data Overview</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bay name</th>
+                                <th>Harvest Week</th>
+                                <th># of images</th>
+                                <th>Total area scanned (m²)</th>
+                                <th>Average Fruit per m²</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Charts Page -->
+            <div class="page" id="charts">
+                <h2>Analytics</h2>
+                <div class="charts-container">
+                    <div class="chart">
+                        <canvas id="densityChart"></canvas>
+                    </div>
+                    <div class="chart">
+                        <canvas id="bayLevelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Page -->
+            <div class="page" id="chat">
+                <h2>Data Analysis Assistant</h2>
+                <form class="analysis-form" method="post" action="{% url 'upload_and_analyze' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label>Data Type</label>
+                        <select multiple>
+                            <option>Yield Data</option>
+                            <option>Growth Rate</option>
+                            <option>Disease Detection</option>
+                            <option>Nutrient Analysis</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Crop Type</label>
+                        <select>
+                            <option>Tomatoes</option>
+                            <option>Cucumbers</option>
+                            <option>Peppers</option>
+                            <option>Lettuce</option>
+                        </select>
+                    </div>
+                    <div class="form-date-group">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date">
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date">
+                        </div>
+                    </div>
+                 
+                    <div class="form-group">
+                        <label>Upload Data File</label>
+                        <div class="upload-box small">
+                            <i class='bx bx-upload'></i>
+                            <p>Drop file here or click to browse</p>
+                            <input type="file" name="file" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <select name="data_type">
+                            <option value="csv">CSV</option>
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                          </select><br>
+                    </div>
+                    <div class="form-group">
+                        <label>Prompt</label>
+                        <textarea name="prompt" rows="4" cols="50">How can I improve kiwi fruit size and sugar content?</textarea>
+                    </div>
+
+
+
+
+
+                  
+                    <button type="submit">Analyze</button>
+                  </form>
+                    <!-- <label>Choose file:</label>
+                    <input type="file" name="file" required><br>
+                    
+                    <label>Data type:</label>
+                    <select name="data_type">
+                      <option value="csv">CSV</option>
+                      <option value="image">Image</option>
+                      <option value="video">Video</option>
+                    </select><br>
+                  
+                    <label>Your prompt:</label>
+                    <textarea name="prompt" rows="4" cols="50">How can I improve kiwi fruit size and sugar content?</textarea><br>
+                   -->
+                  {% if result %}
+                    <h3>Gemini Response:</h3>
+                    <pre>{{ result }}</pre>
+                  {% endif %}
+                  
+
+              
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'mapviewer/script.js' %}"></script>
+
+  <!-- External JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+  <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <!-- Local JS -->
+  <script src="{% static 'mapviewer/map.js' %}"></script>
+<!-- Local Scripts -->
+<script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+  </script>
+
+</body>
+</html>

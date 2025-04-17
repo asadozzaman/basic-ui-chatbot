@@ -1,0 +1,38 @@
+
+{% extends "mapviewer/index.html" %}
+
+{% block content %}
+<div class="parcels-container">
+    <div class="parcels-header">
+        <h2>Parcel Overview</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Parcels</h3>
+                <p>{{ parcel_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Area</h3>
+                <p>{{ total_area }} m²</p>
+            </div>
+            <div class="stat-card">
+                <h3>Processing Time</h3>
+                <p>{{ processing_time }} ms</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="parcels-grid">
+        {% for parcel in parcels %}
+        <div class="parcel-card">
+            <h3>{{ parcel.name }}</h3>
+            <div class="parcel-info">
+                <p><strong>Area:</strong> {{ parcel.area|floatformat:2 }} m²</p>
+                <p><strong>ID:</strong> #{{ parcel.id }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p>No parcels found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
